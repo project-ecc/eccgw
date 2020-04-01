@@ -8,6 +8,8 @@ The ECC Message Gateway is a simple ECC message handler that expects to receive 
 
 **Note - only email has been implemented so far**
 
+Currently any `protocolID` and `protocolVersion` can be used.
+
 ## Example ##
 
     $ ./eccoind sendpacket BMi/dBkqH9SWzb+cuQvsXaKnJWYi24OicSfRo+bzTQ7LvBWRpo6JWzVMO2Mgh7+0+Ocjmws9tNfNkqfpjd2iN3c= 1 1 "fred.bloggs@hotmail.com Hey Fred how is your blog"
