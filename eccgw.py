@@ -46,12 +46,12 @@ def handleTweet(message = ''):
 
     logging.info('Handle Tweet - %s' % message)
 
-    match = re.match('@[a-zA-Z0-9-]+', message)
+    match = re.match('@[a-zA-Z0-9-_]+', message)
 
     handle  = match.group(0)
     content = message[match.end()+1:]
 
-    logging,info('Sending tweet to %s' % handle)
+    logging.info('Sending tweet to %s' % handle)
 
     sendTweet(handle, content)
 
