@@ -35,4 +35,4 @@ You can check that a route is available:
 
     $ ./eccoind haveroute BMi/dBkqH9SWzb+cuQvsXaKnJWYi24OicSfRo+bzTQ7LvBWRpo6JWzVMO2Mgh7+0+Ocjmws9tNfNkqfpjd2iN3c=
 
-Note that the examples above reference an eccgw instance running on eccoinserver1.ddns.net
+Note that the examples above reference an eccgw instance running on eccserver1.ddns.net
