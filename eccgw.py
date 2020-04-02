@@ -10,6 +10,9 @@ import re
 from slickrpc import Proxy
 
 from eccgw_email import sendEmail
+from eccgw_tweet import sendTweet
+
+import settings
 
 ################################################################################
 
@@ -21,7 +24,7 @@ def handle(message = ''):
 
     elif re.match('@\S+ .+', message):
 
-        handleTwitter(message)
+        handleTweet(message)
 
     elif re.match('\S+@\S+ .+', message):
 
@@ -39,9 +42,18 @@ def handleEcho(message = ''):
 
 ################################################################################
 
-def handleTwitter(message = ''):
+def handleTweet(message = ''):
 
-    logging.info('Handle Twitter - %s' % message)
+    logging.info('Handle Tweet - %s' % message)
+
+    match = re.match('@[a-zA-Z0-9-]+', message)
+
+    handle  = match.group(0)
+    content = message[match.end()+1:]
+
+    logging,info('Sending tweet to %s' % handle)
+
+    sendTweet(handle, content)
 
 ################################################################################
 
@@ -91,10 +103,10 @@ def main():
 
     context    = zmq.Context()
     subscriber = context.socket(zmq.SUB)
-    subscriber.connect('tcp://127.0.0.1:28001')
+    subscriber.connect('tcp://%s'%settings.zmq_address)
     subscriber.setsockopt(zmq.SUBSCRIBE, b'')
 
-    eccoin = Proxy('http://%s:%s@127.0.0.1:19119'%('eccoinrpc', 'ecc123-OK-Maybeitneedstobemorecomplex'))
+    eccoin = Proxy('http://%s:%s@%s'%(settings.rpc_user, settings.rpc_pass, settings.rpc_address))
 
     while True:
 
