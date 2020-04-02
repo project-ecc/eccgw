@@ -5,8 +5,9 @@ The ECC Message Gateway is a simple ECC message handler that expects to receive 
 - "@ message" : echo back the message to the sender
 - "@handle message" : Tweet using a configured Twitter account
 - "person@domain message" : Send email using a configured smtp server
+- < syntax to be decided > : Send message to Discord server/channel
 
-**Note - only email has been implemented so far**
+**Note - only email & twitter have been implemented so far**
 
 Currently any `protocolID` and `protocolVersion` can be used.
 
@@ -16,7 +17,13 @@ Twitter support is via Tweepy:
 
     $ pip3 install tweepy
 
-## Example ##
+## Examples ##
+
+Tweet example:
+
+    $ ./eccoind sendpacket BMi/dBkqH9SWzb+cuQvsXaKnJWYi24OicSfRo+bzTQ7LvBWRpo6JWzVMO2Mgh7+0+Ocjmws9tNfNkqfpjd2iN3c= 1 1 "@project_ecc This is the first tweet sent by the ECC Message Gateway (eccgw)"
+
+Email example:
 
     $ ./eccoind sendpacket BMi/dBkqH9SWzb+cuQvsXaKnJWYi24OicSfRo+bzTQ7LvBWRpo6JWzVMO2Mgh7+0+Ocjmws9tNfNkqfpjd2iN3c= 1 1 "fred.bloggs@hotmail.com Hey Fred how is your blog"
 
