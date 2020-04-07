@@ -79,6 +79,8 @@ def handleFaucet(message = ''):
 
         logging.warning('Handle Faucet - SYNTAX ERROR')
 
+    # check there is a route to the provided routing tag
+    
     # check address has not visited faucet before
 
     # check routing tag has not visited faucet before
