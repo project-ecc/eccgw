@@ -14,11 +14,17 @@ from eccgw_tweet import sendTweet
 
 import settings
 
+eccoin = Proxy('http://%s:%s@%s'%(settings.rpc_user, settings.rpc_pass, settings.rpc_address))
+
 ################################################################################
 
-def handle(message = ''):
+def handle(protocolID = '', message = ''):
 
-    if re.match('@ .+', message):
+    if (protocolID == '255') and re.match('\S+ \S+', message): 
+
+        handleFaucet(message)
+
+    elif re.match('@ .+', message):
 
         handleEcho(message)
 
@@ -36,6 +42,53 @@ def handle(message = ''):
 
 ################################################################################
 
+def handleFaucet(message = ''):
+
+    logging.info('Handle Faucet - %s' % message)
+
+    match = re.match('E[a-zA-Z0-9]{33}', message)
+
+    if match:
+
+        eccAddress = match.group(0)
+        routingTag = message[match.end()+1:]
+
+        logging.info('Faucet visited for address %s by node %s' % (eccAddress, routingTag))
+
+        if (eccAddress[0] != 'E') or (len(eccAddress) != 34):
+
+            logging.warning('Faucet visited for invalid address %s' % eccAddress)
+
+        else:
+
+            balance = eccoin.getbalance()
+
+            if (float(balance) > settings.faucet_threshold):
+
+                txid = eccoin.sendtoaddress(eccAddress, str(settings.faucet_payout), "faucet")
+
+                logging.info('Faucet payout %f sent to %s txid %s' % (settings.faucet_payout, eccAddress, txid))
+
+                sendTweet("@eccgw", 'ECC Faucet payout %f sent to %s txid %s' % (settings.faucet_payout, eccAddress, txid))
+
+            else:
+
+                logging.warning('Faucet balance %s below threshold %f' % (balance, settings.faucet_threshold))
+
+    else:
+
+        logging.warning('Handle Faucet - SYNTAX ERROR')
+
+    # check address has not visited faucet before
+
+    # check routing tag has not visited faucet before
+
+    # check payout limit for last hour
+
+    # persist routing tag and address
+
+################################################################################
+
 def handleEcho(message = ''):
 
     logging.info('Handle Echo - %s' % message)
@@ -48,12 +101,18 @@ def handleTweet(message = ''):
 
     match = re.match('@[a-zA-Z0-9-_]+', message)
 
-    handle  = match.group(0)
-    content = message[match.end()+1:]
+    if match:
 
-    logging.info('Sending tweet to %s' % handle)
+        handle  = match.group(0)
+        content = message[match.end()+1:]
 
-    sendTweet(handle, content)
+        logging.info('Sending tweet to %s' % handle)
+
+        sendTweet(handle, content)
+
+    else:
+
+        logging.warning('Handle Tweet - SYNTAX ERROR')
 
 ################################################################################
 
@@ -63,12 +122,18 @@ def handleEmail(message = ''):
 
     match = re.match('[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', message)
 
-    address = match.group(0)
-    content = message[match.end()+1:]
+    if match:
 
-    logging.info('Sending email to %s' % address)
+        address = match.group(0)
+        content = message[match.end()+1:]
 
-    sendEmail(address, content)
+        logging.info('Sending email to %s' % address)
+
+        sendEmail(address, content)
+
+    else:
+
+        logging.warning('Handle Email - SYNTAX ERROR')
 
 ################################################################################
 
@@ -106,7 +171,7 @@ def main():
     subscriber.connect('tcp://%s'%settings.zmq_address)
     subscriber.setsockopt(zmq.SUBSCRIBE, b'')
 
-    eccoin = Proxy('http://%s:%s@%s'%(settings.rpc_user, settings.rpc_pass, settings.rpc_address))
+    #eccoin = Proxy('http://%s:%s@%s'%(settings.rpc_user, settings.rpc_pass, settings.rpc_address))
 
     while True:
 
@@ -126,7 +191,7 @@ def main():
 
                 logging.info('Received message - %s' % message)
 
-                handle(message)
+                handle(protocolID, message)
 
     subscriber.close()
     context.term()
