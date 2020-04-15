@@ -14,5 +14,6 @@ twitter_api_secret_key      = "<deleted>"
 twitter_access_token        = "<deleted>"
 twitter_access_token_secret = "<deleted>"
 
-faucet_threshold = 10000.0
+faucet_warning   = 50000.0 # Send warning tweet asking for refill
+faucet_threshold = 10000.0 # Suspend payouts
 faucet_payout    = 1000.0

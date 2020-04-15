@@ -8,6 +8,7 @@ import sys
 import re
 
 from slickrpc import Proxy
+from slickrpc import exc
 
 from eccgw_email import sendEmail
 from eccgw_tweet import sendTweet
@@ -48,46 +49,88 @@ def handleFaucet(message = ''):
 
     match = re.match('E[a-zA-Z0-9]{33}', message)
 
-    if match:
+    # Check 1 - correct syntax
 
-        eccAddress = match.group(0)
-        routingTag = message[match.end()+1:]
-
-        logging.info('Faucet visited for address %s by node %s' % (eccAddress, routingTag))
-
-        if (eccAddress[0] != 'E') or (len(eccAddress) != 34):
-
-            logging.warning('Faucet visited for invalid address %s' % eccAddress)
-
-        else:
-
-            balance = eccoin.getbalance()
-
-            if (float(balance) > settings.faucet_threshold):
-
-                txid = eccoin.sendtoaddress(eccAddress, str(settings.faucet_payout), "faucet")
-
-                logging.info('Faucet payout %f sent to %s txid %s' % (settings.faucet_payout, eccAddress, txid))
-
-                sendTweet("@eccgw", 'ECC Faucet payout %f sent to %s txid %s' % (settings.faucet_payout, eccAddress, txid))
-
-            else:
-
-                logging.warning('Faucet balance %s below threshold %f' % (balance, settings.faucet_threshold))
-
-    else:
+    if not match:
 
         logging.warning('Handle Faucet - SYNTAX ERROR')
 
-    # check there is a route to the provided routing tag
-    
-    # check address has not visited faucet before
+        return
 
-    # check routing tag has not visited faucet before
+    eccAddress = match.group(0)
+    routingTag = message[match.end()+1:]
 
-    # check payout limit for last hour
+    logging.info('Faucet visited for address %s by node %s' % (eccAddress, routingTag))
 
-    # persist routing tag and address
+    # Check 2 - valid address syntax (this check could be stronger by checking valid address encoding)
+
+    if (len(eccAddress) != 34) or (eccAddress[0] != 'E'):
+
+        logging.warning('Faucet visited for invalid address syntax %s' % eccAddress)
+
+        return
+
+    # Check 3 - valid routing tag syntax (this check could be stronger by checking valid Base64 encoding)
+
+    if (len(routingTag) != 88) or (routingTag[-1] != '='):
+
+        logging.warning('Faucet visited by node with invalid routing tag syntax %s' % routingTag)
+
+        return
+
+    # Check 4 - current route to node
+
+    if not eccoin.haveroute(routingTag):
+
+        logging.warning('Faucet visited by node with no current route %s' % routingTag)
+
+        return
+
+    # Check 5 - both node and address have not visited faucet before
+
+    # ***** TODO *****
+
+    # Check 6 - faucet payout rate limit
+
+    # ***** TODO *****
+
+    balance = eccoin.getbalance()
+
+    # Check 7 - sufficient faucet balance - block and/or flag as appropriate
+
+    if (float(balance) < settings.faucet_threshold):
+
+        logging.warning('Faucet balance %s below threshold %f - payouts blocked' % (balance, settings.faucet_threshold))
+
+        sendTweet('@eccgw', 'ECC Faucet balance %s is below threshold %f - payouts blocked' % (balance, settings.faucet_threshold))
+
+        return
+
+    if (float(balance) < settings.faucet_warning):
+
+        logging.warning('Faucet balance %s starting to get low - please refill' % (balance))
+
+        sendTweet('@eccgw', 'ECC Faucet balance %s is starting to get low - please refill soon' % (balance))
+
+    # All checks passed - process payment
+
+    try:
+
+        txid = eccoin.sendtoaddress(eccAddress, str(settings.faucet_payout), "faucet")
+
+    except exc.RpcWalletUnlockNeeded:
+
+        logging.warning('Wallet unlock required')
+
+        return
+
+    logging.info('Faucet payout %f sent to %s txid %s' % (settings.faucet_payout, eccAddress, txid))
+
+    sendTweet('@eccgw', 'ECC Faucet payout %f sent to %s txid %s' % (settings.faucet_payout, eccAddress, txid))
+
+    # Persist address and routing tag
+
+    # ***** TODO *****
 
 ################################################################################
 
