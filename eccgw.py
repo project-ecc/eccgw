@@ -1,7 +1,9 @@
 import datetime
 import logging
+import pathlib
 import signal
 import codecs
+import pickle
 import time
 import zmq
 import sys
@@ -43,6 +45,63 @@ def handle(protocolID = '', message = ''):
 
 ################################################################################
 
+faucetFileNameAddresses = 'faucet/addresses.dat'
+faucetFileNameNodes     = 'faucet/nodes.dat'
+
+faucetAddresses = []
+faucetNodes     = []
+
+############################################################
+
+def loadListFile(filePath = ''):
+
+    nullList = []
+
+    if not pathlib.Path(filePath).is_file():
+
+        with open(filePath, 'wb') as f:
+
+            pickle.dump(nullList, f)
+
+            f.close()
+
+            return nullList
+
+    else:
+
+        with open(filePath, 'rb') as f:
+
+            return pickle.load(f)
+
+############################################################
+
+def loadFaucetFiles():
+
+    global faucetAddresses
+    global faucetNodes
+
+    faucetAddresses = loadListFile(faucetFileNameAddresses)
+    faucetNodes     = loadListFile(faucetFileNameNodes)
+
+############################################################
+
+def saveListFile(list = [], filePath = ''):
+
+    with open(filePath, 'wb') as f:
+
+        pickle.dump(list, f)
+
+        f.close()
+
+############################################################
+
+def saveFaucetFiles():
+
+    saveListFile(faucetAddresses, faucetFileNameAddresses)
+    saveListFile(faucetNodes,     faucetFileNameNodes)
+
+################################################################################
+
 def handleFaucet(message = ''):
 
     logging.info('Handle Faucet - %s' % message)
@@ -80,7 +139,17 @@ def handleFaucet(message = ''):
 
     # Check 4 - current route to node
 
-    if not eccoin.haveroute(routingTag):
+    try:
+
+        isRoute = eccoin.haveroute(routingTag)
+
+    except exc.RpcInvalidAddressOrKey:
+
+        logging.warning('Faucet visited by node with invalid base64 encoding')
+
+        return
+
+    if not isRoute:
 
         logging.warning('Faucet visited by node with no current route %s' % routingTag)
 
@@ -88,7 +157,17 @@ def handleFaucet(message = ''):
 
     # Check 5 - both node and address have not visited faucet before
 
-    # ***** TODO *****
+    if eccAddress in faucetAddresses:
+
+        logging.warning('Faucet previously visited for address %s' % eccAddress)
+
+        return
+
+    if routingTag in faucetNodes:
+
+        logging.warning('Faucet previously visited by node %s' % routingTag)
+
+        return
 
     # Check 6 - faucet payout rate limit
 
@@ -122,15 +201,17 @@ def handleFaucet(message = ''):
 
         logging.warning('Wallet unlock required')
 
-        return
+    else:
 
-    logging.info('Faucet payout %f sent to %s txid %s' % (settings.faucet_payout, eccAddress, txid))
+        logging.info('Faucet payout %f sent to %s txid %s' % (settings.faucet_payout, eccAddress, txid))
 
-    sendTweet('@eccgw', 'ECC Faucet payout %f sent to %s txid %s' % (settings.faucet_payout, eccAddress, txid))
+        sendTweet('@eccgw', 'ECC Faucet payout %f sent to %s txid %s' % (settings.faucet_payout, eccAddress, txid))
 
-    # Persist address and routing tag
+        faucetAddresses.append(eccAddress)
 
-    # ***** TODO *****
+        faucetNodes.append(routingTag)
+
+        saveFaucetFiles()
 
 ################################################################################
 
@@ -201,7 +282,7 @@ def terminate(signalNumber, frame):
 def main():
 
     logging.basicConfig(filename = 'log/{:%Y-%m-%d}.log'.format(datetime.datetime.now()),
-						filemode = 'w',
+						filemode = 'a',
 						level    = logging.INFO,
 						format   = '%(asctime)s - %(levelname)s : %(message)s',
 						datefmt  = '%d/%m/%Y %H:%M:%S')
@@ -211,12 +292,12 @@ def main():
     signal.signal(signal.SIGINT,  terminate)  # keyboard interrupt ^C
     signal.signal(signal.SIGTERM, terminate)  # kill [default -15]
 
+    loadFaucetFiles()
+
     context    = zmq.Context()
     subscriber = context.socket(zmq.SUB)
     subscriber.connect('tcp://%s'%settings.zmq_address)
     subscriber.setsockopt(zmq.SUBSCRIBE, b'')
-
-    #eccoin = Proxy('http://%s:%s@%s'%(settings.rpc_user, settings.rpc_pass, settings.rpc_address))
 
     while True:
 
