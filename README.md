@@ -2,7 +2,7 @@
 
 The ECC Message Gateway is a simple ECC message handler that expects to receive packets containing UTF-8 text and acts upon the following syntaxes:
 
-- "@routing-tag" : echo back the message to the sender's routing tag
+- "%routing-tag message" : echo back the message to the sender's routing tag
 - "@handle message" : Tweet using a configured Twitter account
 - "person@domain message" : Send email using a configured smtp server
 - < syntax to be decided > : Send message to Discord server/channel
@@ -22,7 +22,7 @@ Twitter support is via Tweepy:
 
 Echo example:
 
-    $ ./eccoind sendpacket BMi/dBkqH9SWzb+cuQvsXaKnJWYi24OicSfRo+bzTQ7LvBWRpo6JWzVMO2Mgh7+0+Ocjmws9tNfNkqfpjd2iN3c= 1 1 "@BCg+o696tx1EgU4E6H0j3QOIo+Lp5BL1GgCF84n/5m27mEvOtUENq53lMz3pYs+ghU6k/9yxheWFPwiE3yhWPbw="
+    $ ./eccoind sendpacket BMi/dBkqH9SWzb+cuQvsXaKnJWYi24OicSfRo+bzTQ7LvBWRpo6JWzVMO2Mgh7+0+Ocjmws9tNfNkqfpjd2iN3c= 1 1 "%BCg+o696tx1EgU4E6H0j3QOIo+Lp5BL1GgCF84n/5m27mEvOtUENq53lMz3pYs+ghU6k/9yxheWFPwiE3yhWPbw= Hello World"
 
 Tweet example:
 
