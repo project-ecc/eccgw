@@ -59,3 +59,10 @@ Follow @eccgw on Twitter to check that your faucet visit was successful. You'll 
 Good luck !!!
 
 Alternatively, wait for the next release of Sapphire which should have a "Get Free ECC" button which will do all of the above for you at the press of a button.
+
+## Donations ##
+
+If you wish to make a donation to the ECC Faucet, please send to:
+
+    ESLv9BpjsSUxZZYuWmqX9krXbvgGwQP6My
+
