@@ -5,8 +5,10 @@ The ECC Faucet dispenses 1000 ECC to each visitor using a unique full node routi
 Pending support in wallet apps such as Sapphire, you may visit the ECC Faucet using the following RPC commands. These commands may be issued in any of the following ways:
 
 - eccoind command line RPC interface
-- ~~ advanced console in Sapphire ~~
-- debug console in Lynx
+- [advanced console in Sapphire] **
+- [debug console in Lynx] **
+
+** **Note that these methods do not currently work due to a command length support limitation in Lynx and Sapphire.**
 
 ## Prerequisites ##
 
