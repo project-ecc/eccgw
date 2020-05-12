@@ -205,8 +205,8 @@ def handleFaucet(message = ''):
 
         logging.info('Faucet payout %f sent to %s txid %s' % (settings.faucet_payout, eccAddress, txid))
 
-        sendTweet('@eccgw', 'ECC Faucet payout %f sent to %s txid %s' % (settings.faucet_payout, eccAddress, txid))
-
+        sendTweet('@eccgw', 'ECC Faucet payout %f sent to %s txid %s remaining balance %s' % (settings.faucet_payout, eccAddress, txid, balance))
+        
         faucetAddresses.append(eccAddress)
 
         faucetNodes.append(routingTag)
