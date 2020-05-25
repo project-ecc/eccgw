@@ -27,7 +27,7 @@ def handle(protocolID = '', message = ''):
 
         handleFaucet(message)
 
-    elif re.match('@ .+', message):
+    elif re.match('%.+', message):
 
         handleEcho(message)
 
@@ -219,6 +219,49 @@ def handleEcho(message = ''):
 
     logging.info('Handle Echo - %s' % message)
 
+    match = re.match('%[a-zA-Z0-9+/=]{88}', message)
+
+    # Check 1 - correct syntax
+
+    if not match:
+
+        logging.warning('Handle Echo - SYNTAX ERROR')
+
+        return
+
+    routingTag  = match.group(0)[1:]
+    content     = message[match.end()+1:]
+
+    # Check 2 - valid routing tag syntax (this check could be stronger by checking valid Base64 encoding)
+
+    if (len(routingTag) != 88) or (routingTag[-1] != '='):
+
+        logging.warning('Echo requested by node with invalid routing tag syntax %s' % routingTag)
+
+        return
+
+    # Check 3 - current route to node
+
+    try:
+
+        isRoute = eccoin.haveroute(routingTag)
+
+    except exc.RpcInvalidAddressOrKey:
+
+        logging.warning('Echo requested by node with invalid base64 encoding')
+
+        return
+
+    if not isRoute:
+
+        logging.warning('Echo requested by node with no current route %s' % routingTag)
+
+        return
+
+    logging.info('Sending echo to %s' % routingTag)
+
+    eccoin.sendpacket(routingTag, 1, 1, content)
+
 ################################################################################
 
 def handleTweet(message = ''):
@@ -227,18 +270,18 @@ def handleTweet(message = ''):
 
     match = re.match('@[a-zA-Z0-9-_]+', message)
 
-    if match:
-
-        handle  = match.group(0)
-        content = message[match.end()+1:]
-
-        logging.info('Sending tweet to %s' % handle)
-
-        sendTweet(handle, content)
-
-    else:
+    if not match:
 
         logging.warning('Handle Tweet - SYNTAX ERROR')
+
+        return
+
+    handle  = match.group(0)
+    content = message[match.end()+1:]
+
+    logging.info('Sending tweet to %s' % handle)
+
+    sendTweet(handle, content)
 
 ################################################################################
 
@@ -248,18 +291,18 @@ def handleEmail(message = ''):
 
     match = re.match('[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', message)
 
-    if match:
-
-        address = match.group(0)
-        content = message[match.end()+1:]
-
-        logging.info('Sending email to %s' % address)
-
-        sendEmail(address, content)
-
-    else:
+    if not match:
 
         logging.warning('Handle Email - SYNTAX ERROR')
+
+        return
+
+    address = match.group(0)
+    content = message[match.end()+1:]
+
+    logging.info('Sending email to %s' % address)
+
+    sendEmail(address, content)
 
 ################################################################################
 
