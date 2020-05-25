@@ -6,9 +6,9 @@ Pending support in wallet apps such as Sapphire, you may visit the ECC Faucet us
 
 - eccoind command line RPC interface
 - [advanced console in Sapphire] **
-- [debug console in Lynx] **
+- debug console in Lynx (minimum supported version 0.2.2)
 
-** **Note that these methods do not currently work due to a command length support limitation in Lynx and Sapphire.**
+** **Note that the method does not currently work due to an issue with Sapphire handling commands containing quotes**
 
 ## Prerequisites ##
 
